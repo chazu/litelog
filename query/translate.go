@@ -172,8 +172,8 @@ func buildWhere(aq *AlgebraicQuery) (frags []string, params []any) {
 
 	// 2. Join conditions (implicit equi-joins between tables).
 	for _, jc := range aq.Joins {
-		left := aq.Tables[jc.LeftTable].Alias + "." + jc.LeftCol
-		right := aq.Tables[jc.RightTable].Alias + "." + jc.RightCol
+		left := aq.Tables[jc.LeftTable].Alias + "." + resolveJoinCol(jc.LeftCol, aq.Tables[jc.LeftTable].ValueType)
+		right := aq.Tables[jc.RightTable].Alias + "." + resolveJoinCol(jc.RightCol, aq.Tables[jc.RightTable].ValueType)
 		frags = append(frags, left+" = "+right)
 	}
 
@@ -234,6 +234,20 @@ func buildFilter(tables []TableBinding, f *Filter) (string, []any) {
 	// Quote function name to support hyphenated identifiers (Datalog convention).
 	quotedFn := `"` + f.Fn + `"`
 	return quotedFn + "(" + strings.Join(refs, ", ") + ")", params
+}
+
+// resolveJoinCol returns the actual SQL column name for a join. When the
+// algebrizer records a value-position variable as column "v", we must use the
+// typed column (v_int, v_text, v_float) if the table's attribute has one.
+// For entity-position ("e") and tx-position ("tx") columns this is a no-op.
+func resolveJoinCol(col string, valueType int) string {
+	if col != "v" {
+		return col
+	}
+	if tc := TypedColumn(valueType); tc != "" {
+		return tc
+	}
+	return col
 }
 
 // ---------------------------------------------------------------------------
