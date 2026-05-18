@@ -1,0 +1,86 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/loosh-industries/litelog
+cpu: Apple M3
+BenchmarkEncodeInt64-8             	1000000000	         0.3912 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeInt64-8             	1000000000	         0.3644 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeInt64-8             	1000000000	         0.3628 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeInt64-8             	1000000000	         0.3581 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeInt64-8             	1000000000	         0.3635 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeInt64-8             	1000000000	         0.3775 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeFloat64-8           	1000000000	         0.4036 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeFloat64-8           	1000000000	         0.4088 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeFloat64-8           	1000000000	         0.4060 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeFloat64-8           	1000000000	         0.3881 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeFloat64-8           	1000000000	         0.3792 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeFloat64-8           	1000000000	         0.4315 ns/op	       0 B/op	       0 allocs/op
+BenchmarkEncodeString_Short-8      	64300783	        31.69 ns/op	       8 B/op	       1 allocs/op
+BenchmarkEncodeString_Short-8      	38559429	        34.29 ns/op	       8 B/op	       1 allocs/op
+BenchmarkEncodeString_Short-8      	66455912	        19.42 ns/op	       8 B/op	       1 allocs/op
+BenchmarkEncodeString_Long-8       	 3981901	       325.3 ns/op	    1040 B/op	       2 allocs/op
+BenchmarkEncodeString_Long-8       	 3326760	       365.2 ns/op	    1040 B/op	       2 allocs/op
+BenchmarkEncodeString_Long-8       	 3110048	       431.0 ns/op	    1040 B/op	       2 allocs/op
+BenchmarkEncodeValue_Int-8         	45694411	        36.60 ns/op	       8 B/op	       1 allocs/op
+BenchmarkEncodeValue_Int-8         	80302917	        24.60 ns/op	       8 B/op	       1 allocs/op
+BenchmarkEncodeValue_Int-8         	76374944	        14.72 ns/op	       8 B/op	       1 allocs/op
+BenchmarkEncodeValue_String-8      	52221877	        24.58 ns/op	      16 B/op	       1 allocs/op
+BenchmarkEncodeValue_String-8      	57744824	        21.06 ns/op	      16 B/op	       1 allocs/op
+BenchmarkEncodeValue_String-8      	58215451	        20.85 ns/op	      16 B/op	       1 allocs/op
+BenchmarkEncodeValue_Float-8       	74024001	        21.29 ns/op	       8 B/op	       1 allocs/op
+BenchmarkEncodeValue_Float-8       	47940711	        23.32 ns/op	       8 B/op	       1 allocs/op
+BenchmarkEncodeValue_Float-8       	54257212	        19.78 ns/op	       8 B/op	       1 allocs/op
+BenchmarkDecodeValue_Int-8         	433378186	         2.728 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeValue_Int-8         	444047884	         2.610 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeValue_Int-8         	458219962	         2.731 ns/op	       0 B/op	       0 allocs/op
+BenchmarkDecodeValue_String-8      	27842092	        45.33 ns/op	      32 B/op	       2 allocs/op
+BenchmarkDecodeValue_String-8      	25770519	        82.16 ns/op	      32 B/op	       2 allocs/op
+BenchmarkDecodeValue_String-8      	17713581	        66.59 ns/op	      32 B/op	       2 allocs/op
+BenchmarkTransact_SingleDatom-8    	    6102	    176358 ns/op	     853 B/op	      18 allocs/op
+BenchmarkTransact_SingleDatom-8    	   10086	    126642 ns/op	     843 B/op	      18 allocs/op
+BenchmarkTransact_SingleDatom-8    	   12684	    101683 ns/op	     843 B/op	      19 allocs/op
+BenchmarkTransact_10Datoms-8       	    3481	    392706 ns/op	    2767 B/op	      55 allocs/op
+BenchmarkTransact_10Datoms-8       	    3174	    356946 ns/op	    2765 B/op	      55 allocs/op
+BenchmarkTransact_10Datoms-8       	    4401	    416626 ns/op	    2768 B/op	      55 allocs/op
+BenchmarkTransact_100Datoms-8      	     490	   3620614 ns/op	   24308 B/op	     400 allocs/op
+BenchmarkTransact_100Datoms-8      	     600	   2992041 ns/op	   24383 B/op	     405 allocs/op
+BenchmarkTransact_100Datoms-8      	     736	   2818036 ns/op	   24430 B/op	     408 allocs/op
+BenchmarkTransact_1000Datoms-8     	     100	  25677518 ns/op	  230157 B/op	    4270 allocs/op
+BenchmarkTransact_1000Datoms-8     	     100	  19433088 ns/op	  230117 B/op	    4270 allocs/op
+BenchmarkTransact_1000Datoms-8     	     100	  18384755 ns/op	  230119 B/op	    4270 allocs/op
+BenchmarkQuery_Simple-8            	     888	   2114348 ns/op	  112218 B/op	    3092 allocs/op
+BenchmarkQuery_Simple-8            	     492	   2444889 ns/op	  112205 B/op	    3092 allocs/op
+BenchmarkQuery_Simple-8            	    1005	   1052763 ns/op	  112208 B/op	    3092 allocs/op
+BenchmarkQuery_Join-8              	     541	   2529521 ns/op	  138208 B/op	    3887 allocs/op
+BenchmarkQuery_Join-8              	     445	   2490219 ns/op	  138203 B/op	    3887 allocs/op
+BenchmarkQuery_Join-8              	     444	   2935721 ns/op	  138200 B/op	    3887 allocs/op
+BenchmarkQuery_Filter-8            	     459	   2818657 ns/op	   66115 B/op	    1654 allocs/op
+BenchmarkQuery_Filter-8            	     434	   2571805 ns/op	   66125 B/op	    1654 allocs/op
+BenchmarkQuery_Filter-8            	     702	   1609052 ns/op	   66116 B/op	    1654 allocs/op
+BenchmarkPull_Wildcard-8           	  219508	      5861 ns/op	     786 B/op	      12 allocs/op
+BenchmarkPull_Wildcard-8           	  205039	      6834 ns/op	     786 B/op	      12 allocs/op
+BenchmarkPull_Wildcard-8           	  200616	      8013 ns/op	     788 B/op	      12 allocs/op
+BenchmarkPull_Specific-8           	   91234	     14243 ns/op	     768 B/op	      13 allocs/op
+BenchmarkPull_Specific-8           	  150360	      9609 ns/op	     761 B/op	      13 allocs/op
+BenchmarkPull_Specific-8           	  153190	      7751 ns/op	     761 B/op	      13 allocs/op
+BenchmarkPullMany_100-8            	    2464	    533168 ns/op	   40310 B/op	     606 allocs/op
+BenchmarkPullMany_100-8            	    2587	    545642 ns/op	   40318 B/op	     606 allocs/op
+BenchmarkPullMany_100-8            	    2725	    459365 ns/op	   40303 B/op	     606 allocs/op
+BenchmarkCompileQuery_Simple-8     	  310317	      6184 ns/op	    4002 B/op	      67 allocs/op
+BenchmarkCompileQuery_Simple-8     	  224340	      4598 ns/op	    4002 B/op	      67 allocs/op
+BenchmarkCompileQuery_Simple-8     	  241376	      5163 ns/op	    4002 B/op	      67 allocs/op
+BenchmarkCompileQuery_Join-8       	  136500	      8715 ns/op	    7949 B/op	     116 allocs/op
+BenchmarkCompileQuery_Join-8       	  143918	      8212 ns/op	    7949 B/op	     116 allocs/op
+BenchmarkCompileQuery_Join-8       	  128364	     11720 ns/op	    7949 B/op	     116 allocs/op
+BenchmarkParseEDN_SimpleVector-8   	 1298151	      1132 ns/op	     616 B/op	       5 allocs/op
+BenchmarkParseEDN_SimpleVector-8   	 1747218	       654.3 ns/op	     616 B/op	       5 allocs/op
+BenchmarkParseEDN_SimpleVector-8   	 1608667	       657.4 ns/op	     616 B/op	       5 allocs/op
+BenchmarkParseEDN_Query-8          	  255745	      5696 ns/op	    4128 B/op	      68 allocs/op
+BenchmarkParseEDN_Query-8          	  164330	      6336 ns/op	    4128 B/op	      68 allocs/op
+BenchmarkParseEDN_Query-8          	  179283	      9866 ns/op	    4128 B/op	      68 allocs/op
+PASS
+ok  	github.com/loosh-industries/litelog	111.694s
+PASS
+ok  	github.com/loosh-industries/litelog/edn	0.048s
+?   	github.com/loosh-industries/litelog/internal/sql	[no test files]
+PASS
+ok  	github.com/loosh-industries/litelog/query	0.088s

@@ -1,0 +1,305 @@
+Profiling Summary - litelog baseline
+Generated: Sat May  9 23:11:42 EDT 2026
+CPU: Apple M3
+Go: go version go1.25.8 darwin/arm64
+
+================================================================
+CPU Profile: BenchmarkTransact_100Datoms (5s)
+================================================================
+File: litelog.test
+Type: cpu
+Time: 2026-05-09 23:10:45 EDT
+Duration: 10.47s, Total samples = 6.82s (65.12%)
+Showing nodes accounting for 6.70s, 98.24% of 6.82s total
+Dropped 67 nodes (cum <= 0.03s)
+      flat  flat%   sum%        cum   cum%
+     5.02s 73.61% 73.61%      5.02s 73.61%  syscall.syscall6
+     0.94s 13.78% 87.39%      0.94s 13.78%  syscall.syscall
+     0.44s  6.45% 93.84%      0.44s  6.45%  modernc.org/libc.Xmemcpy (inline)
+     0.13s  1.91% 95.75%      0.42s  6.16%  modernc.org/memory.(*Allocator).mmap
+     0.10s  1.47% 97.21%      0.10s  1.47%  syscall.Syscall
+     0.05s  0.73% 97.95%      0.05s  0.73%  runtime.usleep
+     0.02s  0.29% 98.24%      2.97s 43.55%  modernc.org/sqlite/lib._sqlite3BtreeIndexMoveto
+         0     0% 98.24%      6.69s 98.09%  github.com/loosh-industries/litelog.(*DB).Transact (inline)
+         0     0% 98.24%      6.69s 98.09%  github.com/loosh-industries/litelog.(*DB).transact
+         0     0% 98.24%      3.96s 58.06%  github.com/loosh-industries/litelog.(*DB).transact.func1
+         0     0% 98.24%      6.70s 98.24%  github.com/loosh-industries/litelog.(*DB).withWriteConn
+         0     0% 98.24%      6.70s 98.24%  github.com/loosh-industries/litelog.BenchmarkTransact_100Datoms
+         0     0% 98.24%      6.70s 98.24%  github.com/loosh-industries/litelog.benchTransactN
+         0     0% 98.24%      0.05s  0.73%  golang.org/x/sys/unix.FcntlFlock (inline)
+         0     0% 98.24%      0.48s  7.04%  golang.org/x/sys/unix.Fsync
+         0     0% 98.24%      0.29s  4.25%  golang.org/x/sys/unix.MmapPtr (inline)
+         0     0% 98.24%      0.39s  5.72%  golang.org/x/sys/unix.MunmapPtr (inline)
+         0     0% 98.24%      2.64s 38.71%  golang.org/x/sys/unix.Pread (inline)
+         0     0% 98.24%      2.09s 30.65%  golang.org/x/sys/unix.Pwrite (inline)
+         0     0% 98.24%      0.05s  0.73%  golang.org/x/sys/unix.fcntl
+         0     0% 98.24%      0.29s  4.25%  golang.org/x/sys/unix.mmap
+         0     0% 98.24%      0.39s  5.72%  golang.org/x/sys/unix.munmap
+         0     0% 98.24%      2.64s 38.71%  golang.org/x/sys/unix.pread
+         0     0% 98.24%      2.09s 30.65%  golang.org/x/sys/unix.pwrite
+         0     0% 98.24%      0.44s  6.45%  modernc.org/libc.X__builtin___memcpy_chk
+         0     0% 98.24%      0.05s  0.73%  modernc.org/libc.Xfcntl
+         0     0% 98.24%      0.05s  0.73%  modernc.org/libc.Xfcntl64
+         0     0% 98.24%      0.39s  5.72%  modernc.org/libc.Xfree
+         0     0% 98.24%      0.48s  7.04%  modernc.org/libc.Xfsync
+         0     0% 98.24%      0.42s  6.16%  modernc.org/libc.Xmalloc
+         0     0% 98.24%      0.10s  1.47%  modernc.org/libc.Xmunmap
+         0     0% 98.24%      2.64s 38.71%  modernc.org/libc.Xpread
+         0     0% 98.24%      2.09s 30.65%  modernc.org/libc.Xpwrite
+         0     0% 98.24%      0.39s  5.72%  modernc.org/memory.(*Allocator).UintptrFree
+         0     0% 98.24%      0.42s  6.16%  modernc.org/memory.(*Allocator).UintptrMalloc
+         0     0% 98.24%      0.42s  6.16%  modernc.org/memory.(*Allocator).newSharedPage
+         0     0% 98.24%      0.39s  5.72%  modernc.org/memory.(*Allocator).unmap (inline)
+         0     0% 98.24%      0.29s  4.25%  modernc.org/memory.mmap
+         0     0% 98.24%      0.39s  5.72%  modernc.org/memory.unmap (inline)
+         0     0% 98.24%      0.39s  5.72%  modernc.org/sqlite/lib.Xsqlite3_free
+         0     0% 98.24%      6.69s 98.09%  modernc.org/sqlite/lib.Xsqlite3_step
+         0     0% 98.24%      0.72s 10.56%  modernc.org/sqlite/lib.Xsqlite3_wal_checkpoint (inline)
+         0     0% 98.24%      0.72s 10.56%  modernc.org/sqlite/lib.Xsqlite3_wal_checkpoint_v2
+         0     0% 98.24%      0.97s 14.22%  modernc.org/sqlite/lib._balance
+         0     0% 98.24%      0.97s 14.22%  modernc.org/sqlite/lib._balance_nonroot
+         0     0% 98.24%      0.09s  1.32%  modernc.org/sqlite/lib._btreeBeginTrans
+         0     0% 98.24%      0.72s 10.56%  modernc.org/sqlite/lib._doWalCallbacks
+         0     0% 98.24%      0.48s  7.04%  modernc.org/sqlite/lib._full_fsync
+         0     0% 98.24%      3.12s 45.75%  modernc.org/sqlite/lib._getAndInitPage
+         0     0% 98.24%      3.12s 45.75%  modernc.org/sqlite/lib._getPageMMap
+         0     0% 98.24%      3.09s 45.31%  modernc.org/sqlite/lib._getPageNormal
+         0     0% 98.24%      0.09s  1.32%  modernc.org/sqlite/lib._lockBtree
+         0     0% 98.24%      0.07s  1.03%  modernc.org/sqlite/lib._moveToRoot
+         0     0% 98.24%      0.09s  1.32%  modernc.org/sqlite/lib._pagerBeginReadTransaction
+         0     0% 98.24%      1.91s 28.01%  modernc.org/sqlite/lib._pagerWalFrames
+         0     0% 98.24%      3.07s 45.01%  modernc.org/sqlite/lib._readDbPage
+         0     0% 98.24%      2.64s 38.71%  modernc.org/sqlite/lib._seekAndRead
+         0     0% 98.24%      2.09s 30.65%  modernc.org/sqlite/lib._seekAndWrite (inline)
+         0     0% 98.24%      2.09s 30.65%  modernc.org/sqlite/lib._seekAndWriteFd
+         0     0% 98.24%      0.09s  1.32%  modernc.org/sqlite/lib._sqlite3BtreeBeginTrans
+         0     0% 98.24%      0.72s 10.56%  modernc.org/sqlite/lib._sqlite3BtreeCheckpoint
+         0     0% 98.24%      1.91s 28.01%  modernc.org/sqlite/lib._sqlite3BtreeCommitPhaseOne
+         0     0% 98.24%      3.88s 56.89%  modernc.org/sqlite/lib._sqlite3BtreeInsert
+         0     0% 98.24%      0.72s 10.56%  modernc.org/sqlite/lib._sqlite3Checkpoint
+         0     0% 98.24%      0.39s  5.72%  modernc.org/sqlite/lib._sqlite3DbFree (inline)
+         0     0% 98.24%      0.39s  5.72%  modernc.org/sqlite/lib._sqlite3DbFreeNN
+         0     0% 98.24%      0.42s  6.16%  modernc.org/sqlite/lib._sqlite3DbMallocRaw
+         0     0% 98.24%      0.42s  6.16%  modernc.org/sqlite/lib._sqlite3Malloc
+         0     0% 98.24%      0.39s  5.72%  modernc.org/sqlite/lib._sqlite3MemFree
+         0     0% 98.24%      0.42s  6.16%  modernc.org/sqlite/lib._sqlite3MemMalloc
+         0     0% 98.24%      3.08s 45.16%  modernc.org/sqlite/lib._sqlite3OsRead (inline)
+         0     0% 98.24%      0.05s  0.73%  modernc.org/sqlite/lib._sqlite3OsShmLock (inline)
+         0     0% 98.24%      0.48s  7.04%  modernc.org/sqlite/lib._sqlite3OsSync
+         0     0% 98.24%      0.09s  1.32%  modernc.org/sqlite/lib._sqlite3OsUnfetch (inline)
+         0     0% 98.24%      2.09s 30.65%  modernc.org/sqlite/lib._sqlite3OsWrite (inline)
+         0     0% 98.24%      0.72s 10.56%  modernc.org/sqlite/lib._sqlite3PagerCheckpoint
+         0     0% 98.24%      1.91s 28.01%  modernc.org/sqlite/lib._sqlite3PagerCommitPhaseOne
+         0     0% 98.24%      3.12s 45.75%  modernc.org/sqlite/lib._sqlite3PagerGet (inline)
+         0     0% 98.24%      0.09s  1.32%  modernc.org/sqlite/lib._sqlite3PagerSharedLock
+         0     0% 98.24%      6.69s 98.09%  modernc.org/sqlite/lib._sqlite3Step
+         0     0% 98.24%      5.97s 87.54%  modernc.org/sqlite/lib._sqlite3VdbeExec
+         0     0% 98.24%      1.93s 28.30%  modernc.org/sqlite/lib._sqlite3VdbeHalt
+         0     0% 98.24%      0.72s 10.56%  modernc.org/sqlite/lib._sqlite3WalCheckpoint
+         0     0% 98.24%      0.72s 10.56%  modernc.org/sqlite/lib._sqlite3WalDefaultHook
+         0     0% 98.24%      1.91s 28.01%  modernc.org/sqlite/lib._sqlite3WalFrames (inline)
+         0     0% 98.24%      2.62s 38.42%  modernc.org/sqlite/lib._sqlite3WalReadFrame
+         0     0% 98.24%      0.05s  0.73%  modernc.org/sqlite/lib._unixMapfile
+         0     0% 98.24%      3.08s 45.16%  modernc.org/sqlite/lib._unixRead
+         0     0% 98.24%      0.05s  0.73%  modernc.org/sqlite/lib._unixShmLock
+         0     0% 98.24%      0.05s  0.73%  modernc.org/sqlite/lib._unixShmSystemLock
+         0     0% 98.24%      0.48s  7.04%  modernc.org/sqlite/lib._unixSync
+         0     0% 98.24%      0.09s  1.32%  modernc.org/sqlite/lib._unixUnfetch
+         0     0% 98.24%      0.09s  1.32%  modernc.org/sqlite/lib._unixUnmapfile
+         0     0% 98.24%      2.09s 30.65%  modernc.org/sqlite/lib._unixWrite
+         0     0% 98.24%      1.93s 28.30%  modernc.org/sqlite/lib._vdbeCommit
+         0     0% 98.24%      0.72s 10.56%  modernc.org/sqlite/lib._walCheckpoint
+         0     0% 98.24%      1.91s 28.01%  modernc.org/sqlite/lib._walFrames
+         0     0% 98.24%      1.91s 28.01%  modernc.org/sqlite/lib._walWriteOneFrame
+         0     0% 98.24%      1.91s 28.01%  modernc.org/sqlite/lib._walWriteToLog
+         0     0% 98.24%      0.05s  0.73%  runtime.lock (inline)
+         0     0% 98.24%      0.05s  0.73%  runtime.lock2
+         0     0% 98.24%      0.05s  0.73%  runtime.lockWithRank (inline)
+         0     0% 98.24%      0.04s  0.59%  runtime.mcall
+         0     0% 98.24%      0.05s  0.73%  runtime.osyield (inline)
+         0     0% 98.24%      0.04s  0.59%  runtime.park_m
+         0     0% 98.24%      0.04s  0.59%  runtime.schedule
+         0     0% 98.24%      0.07s  1.03%  runtime.systemstack
+         0     0% 98.24%      0.04s  0.59%  runtime.wakep
+         0     0% 98.24%      6.70s 98.24%  testing.(*B).launch
+         0     0% 98.24%      6.70s 98.24%  testing.(*B).runN
+         0     0% 98.24%      6.69s 98.09%  zombiezen.com/go/sqlite.(*Stmt).Step
+         0     0% 98.24%      6.69s 98.09%  zombiezen.com/go/sqlite.(*Stmt).step
+         0     0% 98.24%      2.74s 40.18%  zombiezen.com/go/sqlite/sqlitex.Execute
+         0     0% 98.24%      0.09s  1.32%  zombiezen.com/go/sqlite/sqlitex.ImmediateTransaction
+         0     0% 98.24%      2.74s 40.18%  zombiezen.com/go/sqlite/sqlitex.exec
+         0     0% 98.24%      0.09s  1.32%  zombiezen.com/go/sqlite/sqlitex.transaction
+         0     0% 98.24%      2.65s 38.86%  zombiezen.com/go/sqlite/sqlitex.transaction.func1
+
+================================================================
+CPU Profile: BenchmarkQuery_Join (5s)
+================================================================
+File: litelog.test
+Type: cpu
+Time: 2026-05-09 23:11:10 EDT
+Duration: 6.25s, Total samples = 6.14s (98.30%)
+Showing nodes accounting for 5.94s, 96.74% of 6.14s total
+Dropped 114 nodes (cum <= 0.03s)
+      flat  flat%   sum%        cum   cum%
+     4.52s 73.62% 73.62%      4.52s 73.62%  syscall.syscall6
+     0.48s  7.82% 81.43%      0.48s  7.82%  syscall.syscall
+     0.24s  3.91% 85.34%      4.75s 77.36%  modernc.org/memory.(*Allocator).mmap
+     0.24s  3.91% 89.25%      4.99s 81.27%  modernc.org/sqlite/lib._sqlite3MemMalloc
+     0.12s  1.95% 91.21%      0.12s  1.95%  runtime.pthread_cond_signal
+     0.09s  1.47% 92.67%      0.09s  1.47%  runtime.usleep
+     0.06s  0.98% 93.65%      0.06s  0.98%  runtime.pthread_cond_wait
+     0.05s  0.81% 94.46%      0.05s  0.81%  runtime.pthread_kill
+     0.03s  0.49% 94.95%      5.66s 92.18%  modernc.org/sqlite/lib._sqlite3VdbeExec
+     0.03s  0.49% 95.44%      0.04s  0.65%  modernc.org/sqlite/lib._sqlite3VdbeRecordCompareWithSkip
+     0.03s  0.49% 95.93%      0.05s  0.81%  modernc.org/sqlite/lib._vdbeRecordCompareInt
+     0.02s  0.33% 96.25%      0.12s  1.95%  modernc.org/sqlite/lib._sqlite3BtreeIndexMoveto
+     0.01s  0.16% 96.42%      5.15s 83.88%  modernc.org/sqlite/lib._balance_nonroot
+     0.01s  0.16% 96.58%      0.05s  0.81%  runtime.runqgrab
+     0.01s  0.16% 96.74%      0.06s  0.98%  runtime.stealWork
+         0     0% 96.74%      5.65s 92.02%  github.com/loosh-industries/litelog.(*DB).Query
+         0     0% 96.74%      5.65s 92.02%  github.com/loosh-industries/litelog.(*DB).executeQuery
+         0     0% 96.74%      5.65s 92.02%  github.com/loosh-industries/litelog.(*DB).executeQuery.func1
+         0     0% 96.74%      5.65s 92.02%  github.com/loosh-industries/litelog.(*DB).withConn
+         0     0% 96.74%      5.68s 92.51%  github.com/loosh-industries/litelog.BenchmarkQuery_Join
+         0     0% 96.74%      0.06s  0.98%  golang.org/x/sys/unix.FcntlFlock (inline)
+         0     0% 96.74%      4.50s 73.29%  golang.org/x/sys/unix.MmapPtr (inline)
+         0     0% 96.74%      0.42s  6.84%  golang.org/x/sys/unix.MunmapPtr (inline)
+         0     0% 96.74%      0.06s  0.98%  golang.org/x/sys/unix.fcntl
+         0     0% 96.74%      4.50s 73.29%  golang.org/x/sys/unix.mmap
+         0     0% 96.74%      0.42s  6.84%  golang.org/x/sys/unix.munmap
+         0     0% 96.74%      0.06s  0.98%  modernc.org/libc.Xfcntl
+         0     0% 96.74%      0.06s  0.98%  modernc.org/libc.Xfcntl64
+         0     0% 96.74%      0.41s  6.68%  modernc.org/libc.Xfree
+         0     0% 96.74%      4.75s 77.36%  modernc.org/libc.Xmalloc
+         0     0% 96.74%      0.41s  6.68%  modernc.org/memory.(*Allocator).UintptrFree
+         0     0% 96.74%      4.75s 77.36%  modernc.org/memory.(*Allocator).UintptrMalloc
+         0     0% 96.74%      4.75s 77.36%  modernc.org/memory.(*Allocator).newSharedPage
+         0     0% 96.74%      0.41s  6.68%  modernc.org/memory.(*Allocator).unmap (inline)
+         0     0% 96.74%      4.51s 73.45%  modernc.org/memory.mmap
+         0     0% 96.74%      0.42s  6.84%  modernc.org/memory.unmap (inline)
+         0     0% 96.74%      0.41s  6.68%  modernc.org/sqlite/lib.Xsqlite3_free
+         0     0% 96.74%      5.66s 92.18%  modernc.org/sqlite/lib.Xsqlite3_step
+         0     0% 96.74%      5.39s 87.79%  modernc.org/sqlite/lib._balance
+         0     0% 96.74%      0.06s  0.98%  modernc.org/sqlite/lib._btreeBeginTrans
+         0     0% 96.74%      0.06s  0.98%  modernc.org/sqlite/lib._lockBtree
+         0     0% 96.74%      0.06s  0.98%  modernc.org/sqlite/lib._pagerBeginReadTransaction
+         0     0% 96.74%      0.26s  4.23%  modernc.org/sqlite/lib._pcache1Alloc
+         0     0% 96.74%      0.06s  0.98%  modernc.org/sqlite/lib._sqlite3BtreeBeginTrans
+         0     0% 96.74%      5.41s 88.11%  modernc.org/sqlite/lib._sqlite3BtreeInsert
+         0     0% 96.74%      0.39s  6.35%  modernc.org/sqlite/lib._sqlite3DbFree (inline)
+         0     0% 96.74%      0.39s  6.35%  modernc.org/sqlite/lib._sqlite3DbFreeNN
+         0     0% 96.74%      4.73s 77.04%  modernc.org/sqlite/lib._sqlite3DbMallocRaw
+         0     0% 96.74%      4.99s 81.27%  modernc.org/sqlite/lib._sqlite3Malloc
+         0     0% 96.74%      0.41s  6.68%  modernc.org/sqlite/lib._sqlite3MemFree
+         0     0% 96.74%      0.06s  0.98%  modernc.org/sqlite/lib._sqlite3OsShmLock (inline)
+         0     0% 96.74%      0.24s  3.91%  modernc.org/sqlite/lib._sqlite3PageMalloc (inline)
+         0     0% 96.74%      0.06s  0.98%  modernc.org/sqlite/lib._sqlite3PagerSharedLock
+         0     0% 96.74%      5.66s 92.18%  modernc.org/sqlite/lib._sqlite3Step
+         0     0% 96.74%      0.06s  0.98%  modernc.org/sqlite/lib._sqlite3WalBeginReadTransaction (inline)
+         0     0% 96.74%      0.06s  0.98%  modernc.org/sqlite/lib._unixShmLock
+         0     0% 96.74%      0.06s  0.98%  modernc.org/sqlite/lib._unixShmSystemLock
+         0     0% 96.74%      0.06s  0.98%  modernc.org/sqlite/lib._walBeginReadTransaction
+         0     0% 96.74%      0.06s  0.98%  modernc.org/sqlite/lib._walLockShared
+         0     0% 96.74%      0.06s  0.98%  modernc.org/sqlite/lib._walTryBeginRead
+         0     0% 96.74%      0.05s  0.81%  runtime.(*gcControllerState).enlistWorker
+         0     0% 96.74%      0.05s  0.81%  runtime.(*gcWork).balance
+         0     0% 96.74%      0.21s  3.42%  runtime.findRunnable
+         0     0% 96.74%      0.04s  0.65%  runtime.gcBgMarkWorker
+         0     0% 96.74%      0.09s  1.47%  runtime.gcBgMarkWorker.func2
+         0     0% 96.74%      0.09s  1.47%  runtime.gcDrain
+         0     0% 96.74%      0.06s  0.98%  runtime.gcDrainMarkWorkerDedicated (inline)
+         0     0% 96.74%      0.04s  0.65%  runtime.gopreempt_m (inline)
+         0     0% 96.74%      0.04s  0.65%  runtime.goschedImpl
+         0     0% 96.74%      0.05s  0.81%  runtime.lock (inline)
+         0     0% 96.74%      0.05s  0.81%  runtime.lock2
+         0     0% 96.74%      0.05s  0.81%  runtime.lockWithRank (inline)
+         0     0% 96.74%      0.07s  1.14%  runtime.mPark (inline)
+         0     0% 96.74%      0.21s  3.42%  runtime.mcall
+         0     0% 96.74%      0.04s  0.65%  runtime.morestack
+         0     0% 96.74%      0.06s  0.98%  runtime.newproc.func1
+         0     0% 96.74%      0.04s  0.65%  runtime.newstack
+         0     0% 96.74%      0.07s  1.14%  runtime.notesleep
+         0     0% 96.74%      0.12s  1.95%  runtime.notewakeup
+         0     0% 96.74%      0.05s  0.81%  runtime.osyield (inline)
+         0     0% 96.74%      0.21s  3.42%  runtime.park_m
+         0     0% 96.74%      0.05s  0.81%  runtime.preemptM
+         0     0% 96.74%      0.05s  0.81%  runtime.preemptone
+         0     0% 96.74%      0.05s  0.81%  runtime.runqsteal
+         0     0% 96.74%      0.04s  0.65%  runtime.scanobject
+         0     0% 96.74%      0.22s  3.58%  runtime.schedule
+         0     0% 96.74%      0.07s  1.14%  runtime.semasleep
+         0     0% 96.74%      0.12s  1.95%  runtime.semawakeup
+         0     0% 96.74%      0.05s  0.81%  runtime.signalM (inline)
+         0     0% 96.74%      0.10s  1.63%  runtime.startm
+         0     0% 96.74%      0.07s  1.14%  runtime.stopm
+         0     0% 96.74%      0.21s  3.42%  runtime.systemstack
+         0     0% 96.74%      0.10s  1.63%  runtime.wakep
+         0     0% 96.74%      5.66s 92.18%  testing.(*B).launch
+         0     0% 96.74%      5.68s 92.51%  testing.(*B).runN
+         0     0% 96.74%      5.66s 92.18%  zombiezen.com/go/sqlite.(*Stmt).Step
+         0     0% 96.74%      5.66s 92.18%  zombiezen.com/go/sqlite.(*Stmt).step
+
+================================================================
+Memory Profile: BenchmarkTransact_100Datoms (5s)
+================================================================
+File: litelog.test
+Type: alloc_space
+Time: 2026-05-09 23:11:06 EDT
+Showing nodes accounting for 110.19MB, 99.10% of 111.19MB total
+Dropped 8 nodes (cum <= 0.56MB)
+      flat  flat%   sum%        cum   cum%
+   79.40MB 71.41% 71.41%    85.40MB 76.80%  github.com/loosh-industries/litelog.(*DB).transact.func1
+      13MB 11.69% 83.10%   103.40MB 92.99%  github.com/loosh-industries/litelog.benchTransactN
+    4.50MB  4.05% 87.15%     4.50MB  4.05%  fmt.Sprintf
+    4.50MB  4.05% 91.19%        6MB  5.40%  github.com/loosh-industries/litelog.encodeValue
+    2.50MB  2.25% 93.45%     2.50MB  2.25%  runtime.allocm
+       2MB  1.80% 95.25%        2MB  1.80%  strings.genSplit
+    1.50MB  1.35% 96.60%     1.50MB  1.35%  github.com/loosh-industries/litelog.encodeInt64 (inline)
+    1.39MB  1.25% 97.85%     4.28MB  3.85%  modernc.org/libc/honnef.co/go/netdb.init.0
+    0.89MB   0.8% 98.65%     0.89MB   0.8%  os.readFileContents
+    0.50MB  0.45% 99.10%        1MB   0.9%  runtime.gcBgMarkWorker
+         0     0% 99.10%    85.90MB 77.25%  github.com/loosh-industries/litelog.(*DB).Transact (inline)
+         0     0% 99.10%    85.90MB 77.25%  github.com/loosh-industries/litelog.(*DB).transact
+         0     0% 99.10%    85.90MB 77.25%  github.com/loosh-industries/litelog.(*DB).withWriteConn
+         0     0% 99.10%   103.40MB 92.99%  github.com/loosh-industries/litelog.BenchmarkTransact_100Datoms
+         0     0% 99.10%     0.89MB   0.8%  io/ioutil.ReadFile (inline)
+         0     0% 99.10%     0.89MB   0.8%  os.ReadFile
+         0     0% 99.10%     4.28MB  3.85%  runtime.doInit (inline)
+         0     0% 99.10%     4.28MB  3.85%  runtime.doInit1
+         0     0% 99.10%     4.28MB  3.85%  runtime.main
+         0     0% 99.10%        2MB  1.80%  runtime.mstart
+         0     0% 99.10%        2MB  1.80%  runtime.mstart0
+         0     0% 99.10%        2MB  1.80%  runtime.mstart1
+         0     0% 99.10%     2.50MB  2.25%  runtime.newm
+         0     0% 99.10%     2.50MB  2.25%  runtime.resetspinning
+         0     0% 99.10%     2.50MB  2.25%  runtime.schedule
+         0     0% 99.10%     2.50MB  2.25%  runtime.startm
+         0     0% 99.10%     2.50MB  2.25%  runtime.wakep
+         0     0% 99.10%        2MB  1.80%  strings.SplitN (inline)
+         0     0% 99.10%   103.40MB 92.99%  testing.(*B).launch
+         0     0% 99.10%   103.40MB 92.99%  testing.(*B).runN
+
+================================================================
+Key Findings
+================================================================
+
+1. TRANSACT CPU: 87% in syscalls (pread/pwrite/mmap) = SQLite I/O dominates
+   - 43.5% in sqlite3BtreeIndexMoveto (B-tree lookups for INSERT/REPLACE)
+   - Go-side code is negligible; transact is I/O-bound
+
+2. QUERY CPU: 92% in sqlite3VdbeExec (SQLite VM execution)
+   - 84% in balance_nonroot -- heavy B-tree rebalancing during scan
+   - Query compilation (parse+algebrize+translate) is <1% of query time
+
+3. TRANSACT MEMORY: 77% in transact.func1 (the closure passed to withWriteConn)
+   - encodeValue/encodeInt64 account for ~6MB (5.4%)
+   - fmt.Sprintf for TempID generation is 4% -- benchTransactN overhead
+   - ~424 allocs/op for 100-datom tx = ~4.2 allocs per datom
+
+4. VALUE ENCODING: sub-nanosecond for int64/float64 encode/decode (zero alloc)
+   - encodeValue adds ~10ns overhead for type dispatch + make([]byte,8)
+   - String encoding is dominated by []byte conversion (1 alloc)
+
+5. QUERY COMPILATION: ~2.5us simple, ~4.6us join (67-116 allocs)
+   - EDN parsing is ~2.7us for a full query string (68 allocs)
+   - Parse+algebrize+translate is <0.5% of full query execution time
