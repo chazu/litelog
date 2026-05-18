@@ -340,16 +340,24 @@ func (a *algebrizer) recordVar(variable string, table int, column string) {
 }
 
 // buildJoins creates equi-join conditions for variables that appear in 2+ patterns.
+// Locations with table == -1 are :in input sentinels and are skipped — those
+// variables are bound as constants by bindInputArgs, not via SQL joins.
 func (a *algebrizer) buildJoins() []JoinCondition {
 	var joins []JoinCondition
 	for v, locs := range a.varMap {
-		for i := 1; i < len(locs); i++ {
+		var real []varLocation
+		for _, loc := range locs {
+			if loc.table >= 0 {
+				real = append(real, loc)
+			}
+		}
+		for i := 1; i < len(real); i++ {
 			joins = append(joins, JoinCondition{
 				Variable:   v,
-				LeftTable:  locs[0].table,
-				LeftCol:    locs[0].column,
-				RightTable: locs[i].table,
-				RightCol:   locs[i].column,
+				LeftTable:  real[0].table,
+				LeftCol:    real[0].column,
+				RightTable: real[i].table,
+				RightCol:   real[i].column,
 			})
 		}
 	}
