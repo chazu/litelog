@@ -67,6 +67,9 @@ func (sc *SchemaCache) All() []*CachedAttribute {
 	return attrs
 }
 
+// Schema returns the schema cache for direct attribute lookups.
+func (db *DB) Schema() *SchemaCache { return db.schema }
+
 // DefineAttribute registers a new attribute in the schema.
 // If the attribute already exists with the same definition, this is a no-op.
 // If it exists with a different definition, returns an error.
