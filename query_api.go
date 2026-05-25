@@ -36,13 +36,46 @@ type QueryResult struct {
 	Rows    [][]any  // decoded result rows
 }
 
+// QueryOpt configures query behavior.
+type QueryOpt func(*queryConfig)
+
+type queryConfig struct {
+	rawAttributes bool
+}
+
+// WithRawAttributes disables automatic resolution of attribute IDs to ident
+// strings. By default, any :find variable bound to the attribute position
+// returns the human-readable ident (e.g. ":principal/username"); with this
+// option it returns the raw int64 attribute ID instead.
+func WithRawAttributes() QueryOpt {
+	return func(c *queryConfig) { c.rawAttributes = true }
+}
+
 // Query executes a Datalog query against the current state.
+// By default, attribute-position columns are resolved to ident strings.
+// Pass WithRawAttributes() to return raw int64 attribute IDs instead.
 func (db *DB) Query(ctx context.Context, datalog string, args ...any) (*QueryResult, error) {
+	return db.QueryWithOpts(ctx, datalog, args, nil)
+}
+
+// QueryWithOpts executes a Datalog query with explicit options.
+func (db *DB) QueryWithOpts(ctx context.Context, datalog string, args []any, opts []QueryOpt) (*QueryResult, error) {
+	var cfg queryConfig
+	for _, o := range opts {
+		o(&cfg)
+	}
 	sq, findMappings, err := db.compileQuery(datalog, args, false, 0, nil)
 	if err != nil {
 		return nil, err
 	}
-	return db.executeQuery(ctx, sq, findMappings)
+	res, err := db.executeQuery(ctx, sq, findMappings)
+	if err != nil {
+		return nil, err
+	}
+	if !cfg.rawAttributes {
+		db.resolveAttributes(res, findMappings)
+	}
+	return res, nil
 }
 
 // AsOf returns a DBView that queries data as it existed at the given transaction.
@@ -70,13 +103,30 @@ type DBView struct {
 }
 
 // Query executes a Datalog query against this temporal view.
+// By default, attribute-position columns are resolved to ident strings.
 func (v *DBView) Query(ctx context.Context, datalog string, args ...any) (*QueryResult, error) {
+	return v.QueryWithOpts(ctx, datalog, args, nil)
+}
+
+// QueryWithOpts executes a Datalog query against this temporal view with explicit options.
+func (v *DBView) QueryWithOpts(ctx context.Context, datalog string, args []any, opts []QueryOpt) (*QueryResult, error) {
+	var cfg queryConfig
+	for _, o := range opts {
+		o(&cfg)
+	}
 	isAsOf := v.txID > 0 || v.validTime != nil
 	sq, findMappings, err := v.db.compileQuery(datalog, args, isAsOf, v.txID, v.validTime)
 	if err != nil {
 		return nil, err
 	}
-	return v.db.executeQuery(ctx, sq, findMappings)
+	res, err := v.db.executeQuery(ctx, sq, findMappings)
+	if err != nil {
+		return nil, err
+	}
+	if !cfg.rawAttributes {
+		v.db.resolveAttributes(res, findMappings)
+	}
+	return res, nil
 }
 
 // compileQuery parses, algebrizes, and translates a Datalog query to SQL.
@@ -570,4 +620,27 @@ func (db *DB) executeQuery(ctx context.Context, sq *query.SQLQuery, findMappings
 	}
 
 	return result, nil
+}
+
+// resolveAttributes replaces raw attribute ID int64 values with their ident
+// strings for any :find column bound to the attribute position.
+func (db *DB) resolveAttributes(res *QueryResult, findMappings []query.FindMapping) {
+	var attrCols []int
+	for i, fm := range findMappings {
+		if fm.Column == "a" {
+			attrCols = append(attrCols, i)
+		}
+	}
+	if len(attrCols) == 0 {
+		return
+	}
+	for _, row := range res.Rows {
+		for _, col := range attrCols {
+			if id, ok := row[col].(int64); ok {
+				if attr := db.schema.GetByID(id); attr != nil {
+					row[col] = attr.Ident
+				}
+			}
+		}
+	}
 }
