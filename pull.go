@@ -302,9 +302,14 @@ func (v *DBView) temporalParams(eid int64) (table string, whereExtra string, par
 	}
 
 	if v.txID > 0 {
-		table = histTable
-		whereExtra = " AND added = 1 AND tx <= ?"
-		params = append(params, v.txID)
+		// An assertion is visible unless it was retracted after it was made
+		// and at or before the view's transaction (CardOne replacement logs
+		// such a retraction). Without this, a pull after an update returns
+		// the old value.
+		table = histTable + " AS d"
+		whereExtra = " AND d.added = 1 AND d.tx <= ? AND NOT EXISTS (SELECT 1 FROM " + histTable +
+			" AS r WHERE r.e = d.e AND r.a = d.a AND r.v = d.v AND r.added = 0 AND r.tx > d.tx AND r.tx <= ?)"
+		params = append(params, v.txID, v.txID)
 	} else if v.validTime != nil {
 		table = histTable
 		ms := v.validTime.UnixMilli()

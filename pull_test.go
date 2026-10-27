@@ -281,3 +281,23 @@ func TestPull_AsOfView(t *testing.T) {
 		t.Errorf("expected historical age=30, got %v", historical[":person/age"])
 	}
 }
+
+func TestPull_AsOfAfterRetractAndReassert(t *testing.T) {
+	db := openMem(t)
+	ctx := context.Background()
+	must(t, db.DefineAttribute(ctx, AttributeSchema{Ident: ":t/tag", ValueType: TypeString, Cardinality: CardMany}))
+	res1, err := db.Transact(ctx, []TxDatom{{E: TempID("x"), A: ":t/tag", V: "a"}, {E: TempID("x"), A: ":t/tag", V: "b"}})
+	must(t, err)
+	x := res1.Tempids[TempID("x")]
+	res2, err := db.Transact(ctx, []TxDatom{{E: x, A: ":t/tag", V: "a", Retract: true}})
+	must(t, err)
+	res3, err := db.Transact(ctx, []TxDatom{{E: x, A: ":t/tag", V: "a"}})
+	must(t, err)
+	for tx, want := range map[int64]int{res1.TxID: 2, res2.TxID: 1, res3.TxID: 2} {
+		r, err := db.AsOf(tx).Pull(ctx, x, PullAttrs(":t/tag"))
+		must(t, err)
+		if got := len(r[":t/tag"].([]any)); got != want {
+			t.Errorf("as of tx %d: %d tags %v, want %d", tx, got, r[":t/tag"], want)
+		}
+	}
+}
