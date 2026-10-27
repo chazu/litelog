@@ -386,3 +386,32 @@ func TestMigrateAddsUniqueIdentityColumn(t *testing.T) {
 		t.Error("Identity not set on attribute defined after migration")
 	}
 }
+
+func TestAsOfTxTime(t *testing.T) {
+	db := openMem(t)
+	definePersonAttrs(t, db)
+	ctx := context.Background()
+	t1 := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	t2 := t1.Add(24 * time.Hour)
+	res, err := db.TransactWithOpts(ctx, []TxDatom{{E: TempID("a"), A: ":person/name", V: "Alice"}}, TransactOpts{TxTime: t1})
+	must(t, err)
+	alice := res.Tempids[TempID("a")]
+	_, err = db.TransactWithOpts(ctx, []TxDatom{{E: alice, A: ":person/name", V: "Alicia"}}, TransactOpts{TxTime: t2})
+	must(t, err)
+
+	if _, ok, err := db.AsOfTxTime(ctx, t1.Add(-time.Hour)); err != nil || ok {
+		t.Errorf("before any tx: ok=%v err=%v", ok, err)
+	}
+	for at, want := range map[time.Time]string{t1: "Alice", t1.Add(time.Hour): "Alice", t2: "Alicia", t2.Add(time.Hour): "Alicia"} {
+		view, ok, err := db.AsOfTxTime(ctx, at)
+		must(t, err)
+		if !ok {
+			t.Fatalf("no view at %v", at)
+		}
+		r, err := view.Pull(ctx, alice, PullAttrs(":person/name"))
+		must(t, err)
+		if r[":person/name"] != want {
+			t.Errorf("at %v: name %v, want %s", at, r[":person/name"], want)
+		}
+	}
+}

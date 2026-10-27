@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"zombiezen.com/go/sqlite"
+	"zombiezen.com/go/sqlite/sqlitex"
 
 	"github.com/chazu/litelog/query"
 )
@@ -85,6 +86,26 @@ func (db *DB) AsOf(txID int64) *DBView {
 		db:   db,
 		txID: txID,
 	}
+}
+
+// AsOfTxTime returns a DBView of the database as of the latest transaction
+// recorded at or before t (transaction time). ok is false when no transaction
+// had been recorded by t. Tx times are assumed to increase with tx IDs, which
+// holds unless transactions were replayed out of chronological order with
+// TransactWithOpts.
+func (db *DB) AsOfTxTime(ctx context.Context, t time.Time) (view *DBView, ok bool, err error) {
+	var txID int64
+	err = db.withConn(ctx, func(conn *sqlite.Conn) error {
+		return sqlitex.Execute(conn, "SELECT COALESCE(MAX(id), 0) FROM transactions WHERE tx_time <= ?",
+			&sqlitex.ExecOptions{
+				Args:       []any{t.UnixMilli()},
+				ResultFunc: func(s *sqlite.Stmt) error { txID = s.ColumnInt64(0); return nil },
+			})
+	})
+	if err != nil || txID == 0 {
+		return nil, false, err
+	}
+	return db.AsOf(txID), true, nil
 }
 
 // AsOfValidTime returns a DBView that queries data valid at the given time.
