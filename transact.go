@@ -11,14 +11,69 @@ import (
 // Transact applies a batch of TxDatoms atomically.
 // TempIDs are resolved to new entity IDs; CardOne attributes automatically
 // retract the previous value before asserting the new one.
+//
+// A TempID asserted with the value of an Identity attribute resolves to the
+// entity already holding that value (upsert), or to a single new entity shared
+// by every TempID asserting that value in this transaction. Asserting an
+// Identity value held by a different entity is an error.
 func (db *DB) Transact(ctx context.Context, datoms []TxDatom) (*TxResult, error) {
-	return db.transact(ctx, datoms, time.Time{})
+	return db.transact(ctx, datoms, TransactOpts{})
 }
 
 // TransactWithValidTime is like Transact but uses the provided validTime for
 // the valid_from field instead of the transaction time.
 func (db *DB) TransactWithValidTime(ctx context.Context, datoms []TxDatom, validTime time.Time) (*TxResult, error) {
-	return db.transact(ctx, datoms, validTime)
+	return db.transact(ctx, datoms, TransactOpts{ValidTime: validTime})
+}
+
+// TransactWithOpts is like Transact but lets the caller set the transaction
+// time and valid time explicitly.
+func (db *DB) TransactWithOpts(ctx context.Context, datoms []TxDatom, opts TransactOpts) (*TxResult, error) {
+	return db.transact(ctx, datoms, opts)
+}
+
+// datomKey identifies a datom within a transaction for deduplication.
+type datomKey struct {
+	e, a    int64
+	retract bool
+	v       string
+}
+
+// lookupEntity returns an entity holding value v for attribute a, excluding
+// entity exclude (pass 0 to exclude none).
+func lookupEntity(stmt *sqlite.Stmt, a int64, v []byte, exclude int64) (int64, bool, error) {
+	defer stmt.Reset()
+	stmt.SetInt64("$a", a)
+	stmt.SetBytes("$v", v)
+	stmt.SetInt64("$exclude", exclude)
+	hasRow, err := stmt.Step()
+	if err != nil || !hasRow {
+		return 0, false, err
+	}
+	return stmt.ColumnInt64(0), true, nil
+}
+
+// resolveLookupRef returns the entity identified by ref.
+func (db *DB) resolveLookupRef(stmt *sqlite.Stmt, ref LookupRef) (int64, error) {
+	attr := db.schema.GetByIdent(ref.A)
+	if attr == nil {
+		return 0, fmt.Errorf("lookup ref: unknown attribute %q", ref.A)
+	}
+	if !attr.Identity {
+		return 0, fmt.Errorf("lookup ref: attribute %q is not an identity attribute", ref.A)
+	}
+	vBytes, err := encodeValue(ref.V, attr.ValueType)
+	if err != nil {
+		return 0, fmt.Errorf("lookup ref: encode value: %w", err)
+	}
+	eid, found, err := lookupEntity(stmt, attr.ID, vBytes, 0)
+	if err != nil {
+		return 0, fmt.Errorf("lookup ref: %w", err)
+	}
+	if !found {
+		return 0, fmt.Errorf("lookup ref [%s %v]: no such entity", ref.A, ref.V)
+	}
+	return eid, nil
 }
 
 // bindTypedColumns sets $vi, $vs, $vf2 on a statement based on value type.
@@ -57,13 +112,16 @@ func bindTypedColumns(stmt *sqlite.Stmt, val any, vtype ValueType) {
 	}
 }
 
-func (db *DB) transact(ctx context.Context, txDatoms []TxDatom, validTime time.Time) (*TxResult, error) {
+func (db *DB) transact(ctx context.Context, txDatoms []TxDatom, opts TransactOpts) (*TxResult, error) {
 	txID := db.allocTxID()
 	txTime := time.Now().UnixMilli()
+	if !opts.TxTime.IsZero() {
+		txTime = opts.TxTime.UnixMilli()
+	}
 
 	validFrom := txTime
-	if !validTime.IsZero() {
-		validFrom = validTime.UnixMilli()
+	if !opts.ValidTime.IsZero() {
+		validFrom = opts.ValidTime.UnixMilli()
 	}
 
 	tempids := make(map[TempID]int64)
@@ -102,6 +160,51 @@ func (db *DB) transact(ctx context.Context, txDatoms []TxDatom, validTime time.T
 			return fmt.Errorf("prepare read current: %w", err)
 		}
 
+		stmtLookupAV, err := conn.Prepare("SELECT e FROM current_datoms WHERE a = $a AND v = $v AND e != $exclude LIMIT 1")
+		if err != nil {
+			return fmt.Errorf("prepare lookup av: %w", err)
+		}
+
+		// Upsert: resolve TempIDs asserted with Identity values before any
+		// writes, so every datom for that TempID lands on the same entity.
+		// TempIDs sharing a new Identity value share one new entity.
+		pending := make(map[string]int64) // attr ID + encoded value -> entity
+		for i, td := range txDatoms {
+			tid, ok := td.E.(TempID)
+			if !ok || td.Retract {
+				continue
+			}
+			attr := db.schema.GetByIdent(td.A)
+			if attr == nil || !attr.Identity {
+				continue
+			}
+			vBytes, err := encodeValue(td.V, attr.ValueType)
+			if err != nil {
+				return fmt.Errorf("datom %d: encode value: %w", i, err)
+			}
+			key := fmt.Sprintf("%d:%x", attr.ID, vBytes)
+			eid, ok := pending[key]
+			if !ok {
+				found := false
+				eid, found, err = lookupEntity(stmtLookupAV, attr.ID, vBytes, 0)
+				if err != nil {
+					return fmt.Errorf("datom %d: lookup identity: %w", i, err)
+				}
+				if !found {
+					if prev, ok := tempids[tid]; ok {
+						eid = prev
+					} else {
+						eid = db.allocEntityID()
+					}
+				}
+				pending[key] = eid
+			}
+			if prev, ok := tempids[tid]; ok && prev != eid {
+				return fmt.Errorf("datom %d: tempid %q resolves to both entity %d and %d", i, tid, prev, eid)
+			}
+			tempids[tid] = eid
+		}
+
 		// Insert transaction record.
 		stmtInsertTx.SetInt64("$id", txID)
 		stmtInsertTx.SetInt64("$time", txTime)
@@ -111,6 +214,10 @@ func (db *DB) transact(ctx context.Context, txDatoms []TxDatom, validTime time.T
 		stmtInsertTx.Reset()
 
 		// Process each TxDatom.
+		var seen map[datomKey]bool
+		if len(pending) > 0 {
+			seen = make(map[datomKey]bool)
+		}
 		for i, td := range txDatoms {
 			// Resolve attribute.
 			attr := db.schema.GetByIdent(td.A)
@@ -132,6 +239,12 @@ func (db *DB) transact(ctx context.Context, txDatoms []TxDatom, validTime time.T
 				eid = e
 			case int:
 				eid = int64(e)
+			case LookupRef:
+				resolved, err := db.resolveLookupRef(stmtLookupAV, e)
+				if err != nil {
+					return fmt.Errorf("datom %d: %w", i, err)
+				}
+				eid = resolved
 			default:
 				return fmt.Errorf("datom %d: unsupported entity type %T", i, td.E)
 			}
@@ -140,6 +253,16 @@ func (db *DB) transact(ctx context.Context, txDatoms []TxDatom, validTime time.T
 			vBytes, err := encodeValue(td.V, attr.ValueType)
 			if err != nil {
 				return fmt.Errorf("datom %d: encode value: %w", i, err)
+			}
+
+			// TempIDs unified by an Identity value can yield identical
+			// datoms; apply each once. Skipped when no upsert occurred.
+			if seen != nil {
+				k := datomKey{eid, attr.ID, td.Retract, string(vBytes)}
+				if seen[k] {
+					continue
+				}
+				seen[k] = true
 			}
 
 			if td.Retract {
@@ -173,6 +296,16 @@ func (db *DB) transact(ctx context.Context, txDatoms []TxDatom, validTime time.T
 				})
 			} else {
 				// --- Assertion ---
+				if attr.Identity {
+					other, found, err := lookupEntity(stmtLookupAV, attr.ID, vBytes, eid)
+					if err != nil {
+						return fmt.Errorf("datom %d: check identity: %w", i, err)
+					}
+					if found {
+						return fmt.Errorf("datom %d: %s value %v already held by entity %d", i, td.A, td.V, other)
+					}
+				}
+
 				// For CardOne, retract any existing value first.
 				if attr.Cardinality == CardOne {
 					stmtReadCurrent.SetInt64("$e", eid)

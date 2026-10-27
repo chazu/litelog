@@ -51,7 +51,8 @@ CREATE TABLE IF NOT EXISTS attributes (
     cardinality INTEGER NOT NULL DEFAULT 1,
     indexed     INTEGER NOT NULL DEFAULT 0,
     unique_val  INTEGER NOT NULL DEFAULT 0,
-    is_component INTEGER NOT NULL DEFAULT 0
+    is_component INTEGER NOT NULL DEFAULT 0,
+    unique_identity INTEGER NOT NULL DEFAULT 0
 );
 
 -- EAVT covering index (entity-centric access)
@@ -82,12 +83,13 @@ func initSchema(conn *sqlite.Conn) error {
 	if err := sqlitex.ExecuteScript(conn, schemaSQL, nil); err != nil {
 		return err
 	}
-	return migrateTypedColumns(conn)
+	return migrateColumns(conn)
 }
 
-// migrateTypedColumns adds v_int/v_text/v_float columns to existing databases
-// that were created before type-specialized columns existed.
-func migrateTypedColumns(conn *sqlite.Conn) error {
+// migrateColumns adds columns to existing databases that were created before
+// they existed: v_int/v_text/v_float (type-specialized columns) and
+// attributes.unique_identity.
+func migrateColumns(conn *sqlite.Conn) error {
 	migrations := []string{
 		"ALTER TABLE datoms ADD COLUMN v_int INTEGER",
 		"ALTER TABLE datoms ADD COLUMN v_text TEXT",
@@ -95,6 +97,7 @@ func migrateTypedColumns(conn *sqlite.Conn) error {
 		"ALTER TABLE current_datoms ADD COLUMN v_int INTEGER",
 		"ALTER TABLE current_datoms ADD COLUMN v_text TEXT",
 		"ALTER TABLE current_datoms ADD COLUMN v_float REAL",
+		"ALTER TABLE attributes ADD COLUMN unique_identity INTEGER NOT NULL DEFAULT 0",
 	}
 	for _, sql := range migrations {
 		// Ignore "duplicate column" errors for idempotency.

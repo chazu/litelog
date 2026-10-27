@@ -1,5 +1,7 @@
 package litelog
 
+import "time"
+
 // ValueType represents the type of a datom's value.
 type ValueType int
 
@@ -28,6 +30,7 @@ type AttributeSchema struct {
 	Cardinality Cardinality
 	Indexed     bool // create AVET index for this attr
 	Unique      bool // enforce uniqueness on value
+	Identity    bool // unique identity: TempIDs upsert onto the entity holding the value
 	IsComponent bool // component entity (cascade delete)
 }
 
@@ -42,7 +45,7 @@ type Datom struct {
 
 // TxDatom is input to a transaction — uses string idents, not interned IDs.
 type TxDatom struct {
-	E       any    // int64 entity ID or TempID
+	E       any    // int64 entity ID, TempID, or LookupRef
 	A       string // attribute ident e.g. ":person/name"
 	V       any    // value
 	Retract bool   // true = retract this fact
@@ -50,6 +53,24 @@ type TxDatom struct {
 
 // TempID is a placeholder entity ID resolved during transaction.
 type TempID string
+
+// LookupRef identifies an existing entity by the value of an Identity
+// attribute, e.g. LookupRef{A: ":user/email", V: "a@example.com"}.
+type LookupRef struct {
+	A string // Identity attribute ident
+	V any    // value held by the entity
+}
+
+// TransactOpts configures a transaction.
+type TransactOpts struct {
+	// TxTime overrides the recorded transaction time; zero means now.
+	// Intended for replaying transactions recorded elsewhere. Tx IDs still
+	// increase monotonically, so replaying out of order yields tx_time values
+	// that are not monotonic in tx ID.
+	TxTime time.Time
+	// ValidTime sets valid_from; zero means TxTime.
+	ValidTime time.Time
+}
 
 // TxResult contains the outcome of a transaction.
 type TxResult struct {

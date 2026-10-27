@@ -89,7 +89,7 @@ All writes happen through transactions -- atomic batches of assertions and retra
 
 ### TempIDs
 
-`TempID` is a string-typed placeholder used in transactions to refer to entities that do not yet have a permanent ID. All datoms sharing the same TempID within a transaction resolve to the same new entity ID. The resolved mappings are returned in `TxResult.Tempids`.
+`TempID` is a string-typed placeholder used in transactions to refer to entities that do not yet have a permanent ID. All datoms sharing the same TempID within a transaction resolve to the same new entity ID. A TempID asserted with the value of an `Identity` attribute instead resolves to the entity already holding that value (upsert; see [Identity Upsert](#identity-upsert)). The resolved mappings are returned in `TxResult.Tempids`.
 
 ### Bitemporality
 
@@ -97,6 +97,8 @@ litelog tracks two time dimensions for every fact:
 
 - **Transaction time** (`tx`) -- when the fact was recorded in the system. Monotonically increasing; immutable once written.
 - **Valid time** (`valid_from`, `valid_to`) -- when the fact is considered true in the business domain. Can be set to any time, including the past or future, using `TransactWithValidTime`.
+
+Transaction time defaults to now; `TransactWithOpts` can set it explicitly when replaying transactions recorded elsewhere.
 
 This enables queries like "what did we know about X at time T?" (transaction time) and "what was true about X at time T?" (valid time).
 
@@ -127,6 +129,7 @@ This enables queries like "what did we know about X at time T?" (transaction tim
 |--------------|--------|
 | `Indexed`     | Creates an AVET index entry for fast value lookups |
 | `Unique`      | Enforces uniqueness on the attribute's value across all entities |
+| `Identity`    | Unique identity: at most one entity holds each value, TempIDs upsert onto that entity, and the attribute can be used in a `LookupRef` |
 | `IsComponent` | Marks the attribute as a component reference (for future cascade-delete support) |
 
 ### Idempotent Definitions
@@ -164,18 +167,31 @@ pastTime := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
 tx, err := db.TransactWithValidTime(ctx, datoms, pastTime)
 ```
 
+### TransactWithOpts
+
+Sets the transaction time and/or valid time explicitly. A zero `TxTime` means now; a zero `ValidTime` means `TxTime`. Useful for replaying a log recorded elsewhere while preserving when each fact was originally recorded.
+
+```go
+tx, err := db.TransactWithOpts(ctx, datoms, litelog.TransactOpts{
+    TxTime:    recordedAt,
+    ValidTime: validFrom,
+})
+```
+
+Transaction IDs are still allocated monotonically, so replaying out of chronological order produces `tx_time` values that are not monotonic in tx ID. Replay in time order if `AsOf` by tx ID should agree with tx time.
+
 ### TxDatom Structure
 
 ```go
 type TxDatom struct {
-    E       any    // int64 entity ID or TempID
+    E       any    // int64 entity ID, TempID, or LookupRef
     A       string // attribute ident, e.g. ":person/name"
     V       any    // value (must match attribute's ValueType)
     Retract bool   // true = retract this fact
 }
 ```
 
-- **E** -- either a `TempID("label")` for new entities or an `int64` for existing ones
+- **E** -- a `TempID("label")` for new (or upserted) entities, an `int64` for existing ones, or a `LookupRef` naming an existing entity by an `Identity` value
 - **A** -- the attribute ident string (must be previously defined)
 - **V** -- the value, whose Go type must match the attribute's ValueType
 - **Retract** -- when true, removes the specific (E, A, V) triple from current state
@@ -193,6 +209,50 @@ db.Transact(ctx, []litelog.TxDatom{
     {E: int64(1001), A: ":person/email", V: "old@example.com", Retract: true},
 })
 ```
+
+Identical datoms produced by TempIDs unified through an `Identity` value are applied once.
+
+### Identity Upsert
+
+An attribute defined with `Identity: true` names an entity by value, like Datomic's `:db.unique/identity`:
+
+```go
+db.DefineAttribute(ctx, litelog.AttributeSchema{
+    Ident:       ":user/email",
+    ValueType:   litelog.TypeString,
+    Cardinality: litelog.CardOne,
+    Indexed:     true,
+    Identity:    true,
+})
+
+// Creates the user.
+db.Transact(ctx, []litelog.TxDatom{
+    {E: litelog.TempID("u"), A: ":user/email", V: "a@example.com"},
+    {E: litelog.TempID("u"), A: ":user/name", V: "Alice"},
+})
+
+// Same email: TempID "u2" resolves to the existing entity, so this updates it.
+db.Transact(ctx, []litelog.TxDatom{
+    {E: litelog.TempID("u2"), A: ":user/email", V: "a@example.com"},
+    {E: litelog.TempID("u2"), A: ":user/name", V: "Alicia"},
+})
+```
+
+- A TempID asserted with an `Identity` value resolves to the entity holding that value; TempIDs asserting the same new value in one transaction share one new entity.
+- Asserting an `Identity` value on an explicit entity when a different entity already holds it is an error, as is a TempID whose `Identity` values resolve to two different entities.
+- `Unique` attributes without `Identity` do not upsert.
+
+### LookupRef
+
+`LookupRef` names an existing entity by an `Identity` value, so callers need not query for its ID first:
+
+```go
+db.Transact(ctx, []litelog.TxDatom{
+    {E: litelog.LookupRef{A: ":user/email", V: "a@example.com"}, A: ":user/name", V: "Alice", Retract: true},
+})
+```
+
+It is an error if no entity holds the value or the attribute is not an `Identity` attribute.
 
 ### TxResult
 

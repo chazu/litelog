@@ -24,6 +24,7 @@ type CachedAttribute struct {
 	Cardinality Cardinality
 	Indexed     bool
 	Unique      bool
+	Identity    bool
 	IsComponent bool
 }
 
@@ -79,6 +80,7 @@ func (db *DB) DefineAttribute(ctx context.Context, schema AttributeSchema) error
 			existing.Cardinality == schema.Cardinality &&
 			existing.Indexed == schema.Indexed &&
 			existing.Unique == schema.Unique &&
+			existing.Identity == schema.Identity &&
 			existing.IsComponent == schema.IsComponent {
 			return nil // identical, no-op
 		}
@@ -88,7 +90,7 @@ func (db *DB) DefineAttribute(ctx context.Context, schema AttributeSchema) error
 	attrID := db.allocEntityID()
 
 	err := db.withWriteConn(ctx, func(conn *sqlite.Conn) error {
-		stmt, err := conn.Prepare(`INSERT INTO attributes (id, ident, val_type, cardinality, indexed, unique_val, is_component) VALUES ($id, $ident, $vtype, $card, $idx, $uniq, $comp)`)
+		stmt, err := conn.Prepare(`INSERT INTO attributes (id, ident, val_type, cardinality, indexed, unique_val, is_component, unique_identity) VALUES ($id, $ident, $vtype, $card, $idx, $uniq, $comp, $ident_uniq)`)
 		if err != nil {
 			return err
 		}
@@ -99,6 +101,7 @@ func (db *DB) DefineAttribute(ctx context.Context, schema AttributeSchema) error
 		stmt.SetBool("$idx", schema.Indexed)
 		stmt.SetBool("$uniq", schema.Unique)
 		stmt.SetBool("$comp", schema.IsComponent)
+		stmt.SetBool("$ident_uniq", schema.Identity)
 		if _, err := stmt.Step(); err != nil {
 			return err
 		}
@@ -116,6 +119,7 @@ func (db *DB) DefineAttribute(ctx context.Context, schema AttributeSchema) error
 		Cardinality: schema.Cardinality,
 		Indexed:     schema.Indexed,
 		Unique:      schema.Unique,
+		Identity:    schema.Identity,
 		IsComponent: schema.IsComponent,
 	})
 
@@ -126,7 +130,7 @@ func (db *DB) DefineAttribute(ctx context.Context, schema AttributeSchema) error
 // Called during Open.
 func (db *DB) loadAttributes(conn *sqlite.Conn) error {
 	return sqlitex.Execute(conn,
-		"SELECT id, ident, val_type, cardinality, indexed, unique_val, is_component FROM attributes",
+		"SELECT id, ident, val_type, cardinality, indexed, unique_val, is_component, unique_identity FROM attributes",
 		&sqlitex.ExecOptions{
 			ResultFunc: func(stmt *sqlite.Stmt) error {
 				db.schema.put(&CachedAttribute{
@@ -137,6 +141,7 @@ func (db *DB) loadAttributes(conn *sqlite.Conn) error {
 					Indexed:     stmt.ColumnBool(4),
 					Unique:      stmt.ColumnBool(5),
 					IsComponent: stmt.ColumnBool(6),
+					Identity:    stmt.ColumnBool(7),
 				})
 				return nil
 			},
